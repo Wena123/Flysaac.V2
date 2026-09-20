@@ -1,0 +1,9 @@
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Uncomment these if trained artifacts should not be committed:
+# fly_agent/checkpoints/
+# fly_agent/datasets/
+# *.npz

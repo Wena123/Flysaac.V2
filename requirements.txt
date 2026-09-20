@@ -1,0 +1,7 @@
+flybrain[gpu]==0.1.0
+numpy
+opencv-python
+pygame
+mss
+pywin32
+pydirectinput

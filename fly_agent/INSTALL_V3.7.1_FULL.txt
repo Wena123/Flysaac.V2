@@ -1,0 +1,68 @@
+FlyIsaac V3.7.1 — FULL PACKAGE
+================================
+
+This package merges:
+- V3.7 sensory upgrade
+- V3.7.1 door-memory anti-farming patch
+- V3.7.1 safe cleanup utility
+- updated command cheat-sheet
+- GitHub README
+- source-confirmed Isaac mod bundle
+- bridge prefix checker
+
+INSTALL PROJECT PATCH
+---------------------
+
+Extract into:
+
+C:\Users\Admin\Documents\GitHub\FlyBrain\fly.ai
+
+Allow overwrite of the included V3.7/V3.7.1 files.
+
+IMPORTANT:
+Do NOT delete the old fly_agent\isaac folder.
+This release overlays fly_agent\isaac_v3 and top-level runtime scripts.
+
+DOPAMINE SETTINGS
+-----------------
+
+The packaged:
+fly_agent\isaac_v3\dopamine_settings.py
+
+is the current customized version and was preserved while assembling this
+package.
+
+ISAAC MODS
+----------
+
+Bundled:
+isaac_mods\FlyAI_Combat_Bridge_V4
+isaac_mods\FlyAI_V37_Projectile_Bridge
+
+Keep the existing legacy FlyAI / room / world bridge mods that provide:
+FLYAI|
+FLYROOM|
+FLYWORLD|
+
+See:
+isaac_mods\README_MODS.md
+
+VERIFY
+------
+
+cd C:\Users\Admin\Documents\GitHub\FlyBrain\fly.ai\fly_agent
+
+python verify_isaac_v37.py
+python verify_door_memory_v371.py
+python test_door_memory_v371.py
+python check_isaac_bridges_v371.py
+
+NORMAL WORKFLOW
+---------------
+
+python collect_isaac_v3.py --minutes 15
+python train_decoder_v3.py
+python play_isaac_v3.py --grid-assist
+
+Full command reference:
+..\FlyIsaac_KOMENDY_V3.7.1.txt

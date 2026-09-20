@@ -1,0 +1,16 @@
+from isaac_v3 import dopamine_settings as d
+assert d.EVENT_DOPAMINE["ROOM_CLEAR"] == 100.0
+assert d.EVENT_DOPAMINE["SHOT_HIT"] == 1.0
+assert d.EVENT_DOPAMINE["ENEMY_KILL"] == 5.0
+assert d.EVENT_DOPAMINE["BOSS_KILL"] == 30.0
+assert d.EVENT_DOPAMINE["ITEM_PICKUP"] == 3.0
+assert d.EVENT_DOPAMINE["PICKUP"] == 1.25
+assert d.EVENT_DOPAMINE["WALL_ESCAPE"] == .30
+assert d.EVENT_DOPAMINE["PLAYER_HIT"] == -3.0
+assert d.EVENT_DOPAMINE["PLAYER_DEATH"] == -10.0
+assert d.EVENT_DOPAMINE["SHOT_MISS"] == -.30
+assert d.EVENT_DOPAMINE["WALL_STUCK"] == -.50
+assert d.EVENT_DOPAMINE["ROOM_STALL"] == -.50
+assert d.DOPAMINE_DECAY == .965
+assert d.DOPAMINE_POLICY_LR == .012
+print("DOPAMINE SETTINGS V3.7: PRESERVED EXACT USER VALUES")

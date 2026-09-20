@@ -1,0 +1,73 @@
+FLYISAAC V3.7 — FAST TACTICAL SENSORY UPGRADE
+================================================
+
+1) Extract this ZIP into:
+   C:\Users\Admin\Documents\GitHub\FlyBrain\fly.ai
+
+   Overwrite the included fly_agent files.  It does NOT overwrite fly_agent\isaac.
+
+2) IMPORTANT — install the NEW standalone Isaac projectile mod:
+
+   ZIP folder:
+     isaac_mods\FlyAI_V37_Projectile_Bridge
+
+   Copy that whole folder into your The Binding of Isaac Rebirth / Repentance+
+   mods directory and enable "FlyAI V3.7 Projectile Bridge" in Isaac.
+
+   Keep your existing FLYROOM / FLYWORLD / FLYCOMBAT mods enabled.  The V3.7
+   mod uses a separate FLYCOMBATV37 marker and does not replace old reward logic.
+
+3) Verify from fly_agent:
+
+   python verify_isaac_v37.py
+   python test_tactical_grid_v37.py
+   python test_dopamine_preserved_v37.py
+   python test_anatomy_v37.py
+   python test_sensory_v37.py
+   python test_fast_loop_v37.py
+   python test_room_stuck_v363.py
+
+4) Record fresh V3.7 DN data:
+
+   python collect_isaac_v3.py --minutes 15
+   python collect_isaac_v3.py --minutes 15
+
+   New files are datasets\isaac_v37_demo_*.npz.
+   The old 12x20 decoder GRID vector is preserved, but the MaleCNS DN activity
+   now includes the 7x14 tactical map and projectile prediction pathway.
+
+5) Train:
+
+   python train_decoder_v3.py
+
+6) Play / online dopamine learning:
+
+   python play_isaac_v3.py --grid-assist
+
+PRESERVED DOPAMINE SETTINGS
+----------------------------
+Your supplied isaac_v3\dopamine_settings.py values are included unchanged,
+including ROOM_CLEAR=+100, BOSS_KILL=+30, PLAYER_DEATH=-10, etc.
+
+V3.7 SENSORY
+------------
+- legacy learned decoder grid stays 12x20 for compatibility
+- new MaleCNS tactical neural grid is 7x14
+- all hostile projectile positions/velocities/hitboxes from the new Lua mod
+- maps: NOW, +150 ms, +300 ms, +500 ms, danger corridor
+- time-to-impact estimate
+- projectile danger drives LC10 + LPLC2 + LC4
+
+PERFORMANCE
+-----------
+- capture target: 60 Hz
+- MaleCNS target: 45 Hz
+- stale frames are consumed/dropped instead of queued
+- monitor target: 12 Hz
+- dataset sampling stays 10 Hz for compatibility
+
+ROOM WATCHDOG
+-------------
+- same room for 5 minutes -> hold R for 3 seconds
+- transient MaleCNS/retina/temporal state resets
+- learned decoder and dopamine policy memory are preserved

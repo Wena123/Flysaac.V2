@@ -1,0 +1,771 @@
+FLYISAAC / FLYBRAIN — ŚCIĄGA Z KOMEND
+=====================================
+Aktualny etap projektu: V3.6 — Dopamine + Grid -> MaleCNS
+Folder roboczy:
+C:\Users\Admin\Documents\GitHub\FlyBrain\fly.ai\fly_agent
+
+
+============================================================
+0. NAJWAŻNIEJSZE — TYPOWY WORKFLOW
+============================================================
+
+1) Wejdź do folderu projektu:
+cd C:\Users\Admin\Documents\GitHub\FlyBrain\fly.ai\fly_agent
+
+2) Aktywuj venv, jeśli nie jest już aktywny:
+..\..\.venv\Scripts\Activate.ps1
+
+Po aktywacji powinno być:
+(.venv) PS C:\Users\Admin\Documents\GitHub\FlyBrain\fly.ai\fly_agent>
+
+3) Sprawdź V3.6:
+python verify_isaac_v36.py
+python test_dopamine_v36.py
+python test_brain_grid_v36.py
+
+4) Jeśli chcesz tylko zobaczyć starego nauczonego agenta V3.4:
+python play_isaac_v3.py --pure-vision
+
+5) Jeśli chcesz porównać bez dopaminy:
+python play_isaac_v3.py --pure-vision --no-dopamine
+
+6) Nagraj nowe dane V3.6:
+python collect_isaac_v3.py --minutes 15
+
+Najlepiej zrobić 2 sesje:
+python collect_isaac_v3.py --minutes 15
+python collect_isaac_v3.py --minutes 15
+
+7) Wytrenuj modele:
+python train_decoder_v3.py
+
+8) Uruchom najlepszy model:
+python play_isaac_v3.py
+
+9) Uruchom najlepszy model z GRID-em:
+python play_isaac_v3.py --grid-assist
+
+10) Zbieraj poprawki DAgger:
+python dagger_isaac_v3.py
+
+11) Po zebraniu poprawek:
+CTRL+C
+
+12) Trenuj ponownie:
+python train_decoder_v3.py
+
+
+============================================================
+1. PLAY — URUCHAMIANIE AGENTA
+============================================================
+
+python play_isaac_v3.py
+- Uruchamia aktualny najlepszy model.
+- Po treningu czyta plik:
+  checkpoints\isaac_decoder_v35_best_mode.txt
+  lub nowszy odpowiednik używany przez aktualny runtime.
+- Używa obecnego runtime V3.6.
+
+python play_isaac_v3.py --pure-vision
+- Tryb PURE.
+- Bez GRID assist.
+- Używa tylko wizji / retiny.
+- Jeśli nie ma jeszcze modelu V3.5/V3.6, może użyć starego checkpointu V3.4 VISUAL jako fallback.
+
+python play_isaac_v3.py --pure-vision --no-dopamine
+- Najczystszy benchmark.
+- Wizja bez GRID.
+- Bez systemu dopaminy.
+- Dobry do porównania z poprzednim V3.4.
+
+python play_isaac_v3.py --grid-assist
+- Tryb assisted.
+- Używa dodatkowego GRID-u z informacji o pokoju / walce.
+- GRID trafia do decodera i w V3.6 również do MaleCNS przez LC10.
+
+python play_isaac_v3.py --no-neuron-monitor
+- Wyłącza osobne okno monitora neuronów.
+
+python play_isaac_v3.py --neuron-projection xz
+python play_isaac_v3.py --neuron-projection xy
+python play_isaac_v3.py --neuron-projection yz
+- Zmienia rzut anatomicznego monitora MaleCNS.
+- xz = domyślny.
+- Monitor pokazuje realne pozycje neuronów z brain.positions.
+
+
+============================================================
+2. COLLECT — NAGRYWANIE DEMONSTRACJI CZŁOWIEKA
+============================================================
+
+python collect_isaac_v3.py --minutes 15
+- Ty grasz normalnie.
+- Agent nie steruje.
+- Program zapisuje:
+  DN
+  VISUAL
+  GRID
+  Twoje akcje klawiatury
+- W V3.6 tworzy nowe datasety zgodne z aktualną wersją.
+
+Przykład:
+python collect_isaac_v3.py --minutes 30
+- Nagrywa około 30 minut aktywnej gry.
+
+WAŻNE:
+- Alt+Tab / utrata focusu zatrzymuje nagrywanie.
+- Czas pauzy nie liczy się do --minutes.
+- CTRL+C zatrzymuje wcześniej i zapisuje dane.
+
+Dobrze nagrywać różne sytuacje:
+- walka
+- uniki
+- bossy
+- przechodzenie przez drzwi
+- puste pokoje
+- duże pokoje
+- ruch po skosie
+- sytuacje z pociskami
+
+
+============================================================
+3. TRAIN — TRENING DECODERA
+============================================================
+
+python train_decoder_v3.py
+- Główna komenda treningowa.
+- W aktualnej wersji wykorzystuje nowe dane V3.5/V3.6.
+- Potrafi wykorzystać stare dane V3.4 dla części VISUAL.
+- Potrafi użyć starego modelu V3.4 jako teacher / transfer learning.
+- Porównuje różne warianty wejść.
+
+Aktualne tryby V3.5/V3.6:
+VISUAL
+GRID
+VISUAL_GRID
+VISUAL_GRID_DN
+
+Po treningu dostajesz tabelę typu:
+mode
+move_acc
+move_bal
+shoot_acc
+shoot_bal
+joint
+score
+
+Oraz:
+BEST OVERALL
+BEST GRID-ASSISTED
+
+Typowe pliki wynikowe:
+checkpoints\isaac_decoder_v35_visual.npz
+checkpoints\isaac_decoder_v35_grid.npz
+checkpoints\isaac_decoder_v35_visual_grid.npz
+checkpoints\isaac_decoder_v35_visual_grid_dn.npz
+checkpoints\isaac_decoder_v35_best.npz
+
+W starszym V3.4:
+checkpoints\isaac_decoder_v34_best.npz
+checkpoints\isaac_decoder_v34_visual.npz
+checkpoints\isaac_decoder_v34_dn.npz
+checkpoints\isaac_decoder_v34_fusion.npz
+
+
+============================================================
+4. DAGGER — POPRAWIANIE BŁĘDÓW AGENTA
+============================================================
+
+python dagger_isaac_v3.py
+- Agent gra.
+- F8 przełącza:
+  AGENT
+  HUMAN CORRECTION
+
+W HUMAN CORRECTION:
+- grasz WASD + strzałki
+- program zapisuje Twoją poprawkę jako lepszą odpowiedź
+
+F8
+- przełącza między agentem i korektą człowieka
+
+CTRL+C
+- kończy sesję i zapisuje dane DAgger
+
+Zalecenie:
+- zbieraj około 500–1200 DOBRYCH korekt
+- nie poprawiaj każdej drobnostki
+- poprawiaj głównie:
+  * złą stronę ruchu
+  * stanie w miejscu
+  * zapętlenie
+  * złe drzwi
+  * brak uniku
+  * zły kierunek strzału
+  * brak strzelania, gdy powinien
+
+Po DAgger:
+python train_decoder_v3.py
+
+WAŻNE:
+- hotfix V3.3.1 naprawił problem, gdzie teacher zapisywał głównie NONE
+- nie usuwaj tej poprawki
+
+
+============================================================
+5. V3.6 — TESTY DOPAMINY I GRID -> MALECNS
+============================================================
+
+python verify_isaac_v36.py
+- Sprawdza, czy patch V3.6 jest poprawnie zainstalowany.
+
+python test_dopamine_v36.py
+- Testuje system dopaminowy.
+- Sprawdza:
+  PAM/PPL discovery
+  dodatnie / ujemne pulsy
+  eligibility trace
+  pamięć online
+  zapis checkpointu dopaminowego
+
+python test_brain_grid_v36.py
+- Testuje, czy GRID trafia do MaleCNS przez LC10.
+
+Checkpoint dopaminy:
+checkpoints\isaac_dopamine_policy_v36.npz
+
+System dopaminy:
+reward -> dopamine pulse -> PAM/PPL-like neurons -> MaleCNS
+plus:
+eligibility trace -> mała bezpieczna policy plasticity
+
+UWAGA:
+- To nie jest jeszcze pełna plastyczność wszystkich synaps MaleCNS.
+- Connectome nadal jest zasadniczo zamrożony.
+- To jest bezpieczny etap przed ewentualną lokalną plastycznością np. KC -> MBON.
+
+
+============================================================
+6. V3.5.1 — TRANSFER ZE STAREGO V3.4
+============================================================
+
+python verify_transfer_v351.py
+- Sprawdza system transfer learning.
+
+python test_transfer_v351.py
+- Testuje teacher-student / distillation.
+
+python audit_legacy_files_v351.py
+- Pokazuje stare pliki.
+- Niczego nie usuwa.
+
+Transfer działa tak:
+V3.4 VISUAL teacher
+        ->
+V3.5/V3.6 visual branch
+        ->
+GRID / DN / nowe dane
+
+Stary model V3.4:
+checkpoints\isaac_decoder_v34_visual.npz
+
+Stare dane V3.4:
+datasets\isaac_v34_demo_*.npz
+datasets\isaac_v34_dagger_*.npz
+
+Te pliki nadal są przydatne.
+NIE USUWAJ ICH jeszcze, jeśli chcesz zachować transfer.
+
+
+============================================================
+7. V3.5 — GRID ASSIST
+============================================================
+
+python verify_isaac_v35.py
+- Sprawdza podstawową instalację GRID assist.
+
+python test_grid_v35.py
+- Testuje encoder GRID.
+- Oczekiwany wymiar:
+  2894
+
+python test_multimodal_v35.py
+- Testuje dataset DN + VISUAL + GRID.
+
+python test_decoder_v35.py
+- Testuje architekturę decodera V3.5.
+- Tworzy tylko model TYMCZASOWY w AppData\Temp.
+- NIE tworzy prawdziwego modelu do gry.
+
+Dlatego po:
+python test_decoder_v35.py
+
+NIE oznacza to jeszcze, że:
+python play_isaac_v3.py
+będzie działać.
+
+Do prawdziwego modelu potrzebujesz:
+python collect_isaac_v3.py --minutes 15
+python train_decoder_v3.py
+
+
+============================================================
+8. V3.4 — RICH VISION
+============================================================
+
+python verify_isaac_v34.py
+- Sprawdza V3.4.
+
+python test_visual_v34.py
+- Testuje rich vision.
+- Visual dim powinno być:
+  1213
+
+python test_multimodal_v34.py
+- Testuje dataset V3.4.
+
+python test_decoder_v3.py
+- Ogólny test decodera.
+- W V3.4 pokazywał np. movement/shoot test accuracy.
+
+python test_neuron_monitor_v34.py
+- Testuje monitor neuronów.
+
+python test_sensory_v34.py
+- Testuje visual neuron injection.
+
+V3.4 vision:
+1213 visual features / frame
+
+Stare V3.4 datasety nadal są przydatne dla transfer learning.
+
+
+============================================================
+9. V3.4.1 — ANATOMICZNY MONITOR MÓZGU
+============================================================
+
+python verify_anatomical_monitor_v341.py
+- Sprawdza patch monitora anatomicznego.
+
+python test_anatomical_monitor_v341.py
+- Testuje render monitora.
+
+Monitor pokazuje:
+- realne pozycje neuronów MaleCNS z brain.positions
+- aktywne neurony
+- descending neurons
+- retina target
+- retina motion
+- akcje
+- probability bars
+
+To NIE jest pełny render aksonów i dendrytów.
+To jest realny point-cloud pozycji neuronów.
+
+
+============================================================
+10. FOCUS PAUSE
+============================================================
+
+python verify_focus_pause_v332.py
+- Stary test systemu pause po utracie focusu.
+
+Aktualny runtime zachowuje tę funkcję.
+
+Jak działa:
+Alt+Tab / kliknięcie innego okna
+        ->
+Isaac lost focus.
+FlyIsaac paused.
+        ->
+agent puszcza klawisze
+        ->
+czeka
+        ->
+po powrocie:
+Isaac focused again.
+Resuming...
+
+UWAGA:
+To wykrywa utratę foreground focus.
+To nie jest to samo co wykrywanie menu ESC w grze.
+
+
+============================================================
+11. SPRAWDZANIE DATASETÓW
+============================================================
+
+dir datasets\isaac_v36_*.npz
+- Pokazuje nowe datasety V3.6.
+
+dir datasets\isaac_v35_*.npz
+- Pokazuje datasety V3.5.
+
+dir datasets\isaac_v34_*.npz
+- Pokazuje datasety V3.4.
+
+dir datasets\isaac_v33_*.npz
+- Pokazuje datasety V3.3.
+
+Przykład:
+dir datasets\*.npz
+- Pokazuje wszystkie datasety NPZ.
+
+
+============================================================
+12. SPRAWDZANIE CHECKPOINTÓW
+============================================================
+
+dir checkpoints\*.npz
+- Pokazuje wszystkie checkpointy.
+
+dir checkpoints\isaac_decoder_v34*.npz
+- Pokazuje modele V3.4.
+
+dir checkpoints\isaac_decoder_v35*.npz
+- Pokazuje modele V3.5.
+
+dir checkpoints\isaac_decoder_v36*.npz
+- Jeśli dana wersja zapisuje własne V3.6 decoder files, pokazuje je.
+
+dir checkpoints\isaac_dopamine_policy_v36.npz
+- Sprawdza checkpoint systemu dopaminy.
+
+
+============================================================
+13. STARE V3.3 / V3.2 — GŁÓWNIE DIAGNOSTYKA
+============================================================
+
+python verify_isaac_v33.py
+python test_visual_v33.py
+python test_multimodal_v33.py
+python diagnose_isaac_v33.py
+
+python verify_isaac_v32.py
+python test_temporal_v32.py
+
+Te pliki są stare.
+Nie są potrzebne do normalnego V3.6 runtime.
+
+diagnose_isaac_v33.py
+- można usunąć
+
+Stare verify/test możesz:
+- usunąć
+lub
+- przenieść do archive\
+
+NIE USUWAJ przez przypadek:
+isaac_v3\
+checkpoints\
+datasets\
+isaac\
+brain\
+learning\
+
+
+============================================================
+14. STARE DANE — CO ZOSTAWIĆ
+============================================================
+
+ZOSTAW:
+datasets\isaac_v34_demo_*.npz
+datasets\isaac_v34_dagger_*.npz
+checkpoints\isaac_decoder_v34_visual.npz
+checkpoints\isaac_decoder_v34_best.npz
+
+Powód:
+- są użyteczne do transfer learning V3.5.1 / V3.6
+
+V3.3:
+- miało visual dim 490
+- obecne V3.4/V3.5/V3.6 ma visual dim 1213
+- więc stare V3.3 visual data nie może być użyte 1:1 do nowego rich vision
+- można je archiwizować
+
+Przykład:
+mkdir archive\old_v33
+Move-Item datasets\isaac_v33_*.npz archive\old_v33\
+
+Nie kasuj od razu, jeśli nie musisz.
+
+
+============================================================
+15. PODSTAWOWE POWERSHELL
+============================================================
+
+dir
+- lista plików w obecnym folderze
+
+dir datasets
+- lista datasetów
+
+dir checkpoints
+- lista checkpointów
+
+cd ..
+- folder wyżej
+
+cd fly_agent
+- wejście do fly_agent
+
+mkdir archive
+- tworzy folder archive
+
+Move-Item PLIK DESTYNACJA
+- przenosi plik
+
+Przykład:
+Move-Item datasets\stary.npz archive\
+
+Remove-Item plik.py
+- usuwa plik
+- używaj ostrożnie
+
+
+============================================================
+16. CO ROBIĆ TERAZ — AKTUALNY PLAN
+============================================================
+
+A) Sprawdź V3.6:
+python verify_isaac_v36.py
+python test_dopamine_v36.py
+python test_brain_grid_v36.py
+
+B) Opcjonalnie sprawdź starego agenta V3.4:
+python play_isaac_v3.py --pure-vision
+
+C) Benchmark bez dopaminy:
+python play_isaac_v3.py --pure-vision --no-dopamine
+
+D) Nagraj nowe dane V3.6:
+python collect_isaac_v3.py --minutes 15
+python collect_isaac_v3.py --minutes 15
+
+E) Sprawdź:
+dir datasets\isaac_v36_*.npz
+
+F) Trening:
+python train_decoder_v3.py
+
+G) Gra assisted:
+python play_isaac_v3.py --grid-assist
+
+H) DAgger:
+python dagger_isaac_v3.py
+
+I) Po około 500–1200 dobrych korekt:
+CTRL+C
+python train_decoder_v3.py
+
+J) Test ponownie:
+python play_isaac_v3.py --grid-assist
+
+
+============================================================
+17. JAK INTERPRETOWAĆ NAJWAŻNIEJSZE TRYBY
+============================================================
+
+PURE VISION
+-----------
+python play_isaac_v3.py --pure-vision
+
+Dostaje:
+PIXELS -> RETINA -> MaleCNS / decoder
+
+Nie dostaje:
+GRID assist
+
+Dobre do:
+- uczciwego benchmarku biologicznego / wizualnego
+
+
+PURE VISION BEZ DOPAMINY
+------------------------
+python play_isaac_v3.py --pure-vision --no-dopamine
+
+Dobre do:
+- porównania dokładnie z V3.4
+- sprawdzenia, czy dopamina poprawia czy pogarsza zachowanie
+
+
+GRID ASSIST
+-----------
+python play_isaac_v3.py --grid-assist
+
+Dostaje:
+PIXELS
++
+GRID
++
+MaleCNS
++
+DN
++
+dopamine
+
+
+============================================================
+18. CO JEST W GRID
+============================================================
+
+Aktualny GRID ma 12 kanałów:
+1. collision_grid
+2. near_collision_grid
+3. room_valid_mask
+4. door_grid
+5. unexplored_door_grid
+6. locked_door_grid
+7. enemy_grid
+8. self_grid
+9. pickup_grid
+10. item_grid
+11. hazard_grid
+12. trapdoor_grid
+
+Rozmiar:
+12 x 20
+
+Plus:
+14 scalar features
+
+Łącznie:
+2894 grid features / frame
+
+
+============================================================
+19. NAJWAŻNIEJSZE PLIKI
+============================================================
+
+PROGRAM:
+play_isaac_v3.py
+collect_isaac_v3.py
+dagger_isaac_v3.py
+train_decoder_v3.py
+
+AKTUALNY MODUŁ:
+isaac_v3\
+
+STARY ISAAC — NIE USUWAĆ:
+isaac\
+
+MODELE:
+checkpoints\
+
+DANE:
+datasets\
+
+STARY NAUCZONY V3.4:
+checkpoints\isaac_decoder_v34_visual.npz
+checkpoints\isaac_decoder_v34_best.npz
+
+DOPAMINA V3.6:
+checkpoints\isaac_dopamine_policy_v36.npz
+
+
+============================================================
+20. NAJCZĘSTSZE SYTUACJE
+============================================================
+
+BŁĄD:
+Missing/invalid V3.5 mode file
+albo:
+decoder not found
+
+ZNACZY:
+Nie ma jeszcze prawdziwego wytrenowanego modelu nowej wersji.
+
+ROZWIĄZANIE:
+python collect_isaac_v3.py --minutes 15
+python train_decoder_v3.py
+
+
+BŁĄD:
+No V3.5 datasets
+lub podobny
+
+ZNACZY:
+Nie ma nowych datasetów wymaganych przez GRID.
+
+ROZWIĄZANIE:
+python collect_isaac_v3.py --minutes 15
+
+
+CUDA WARNING:
+CUDA path could not be detected
+
+Jeśli później jest:
+Device: cuda
+
+to warning można ignorować.
+
+
+============================================================
+21. KRÓTKA ŚCIĄGA — TYLKO KOMENDY
+============================================================
+
+# Test V3.6
+python verify_isaac_v36.py
+python test_dopamine_v36.py
+python test_brain_grid_v36.py
+
+# Play starego nauczonego V3.4
+python play_isaac_v3.py --pure-vision
+
+# Play bez dopaminy
+python play_isaac_v3.py --pure-vision --no-dopamine
+
+# Record
+python collect_isaac_v3.py --minutes 15
+
+# Train
+python train_decoder_v3.py
+
+# Play best
+python play_isaac_v3.py
+
+# Play GRID
+python play_isaac_v3.py --grid-assist
+
+# DAgger
+python dagger_isaac_v3.py
+
+# Datasety
+dir datasets\isaac_v36_*.npz
+dir datasets\isaac_v35_*.npz
+dir datasets\isaac_v34_*.npz
+dir datasets\isaac_v33_*.npz
+
+# Checkpointy
+dir checkpoints\*.npz
+dir checkpoints\isaac_decoder_v34*.npz
+
+# Transfer
+python verify_transfer_v351.py
+python test_transfer_v351.py
+python audit_legacy_files_v351.py
+
+# Monitor
+python play_isaac_v3.py --neuron-projection xz
+python play_isaac_v3.py --neuron-projection xy
+python play_isaac_v3.py --neuron-projection yz
+python play_isaac_v3.py --no-neuron-monitor
+
+
+============================================================
+KONIEC
+============================================================
+
+Najważniejszy cykl na obecnym etapie:
+
+COLLECT
+  ->
+TRAIN
+  ->
+PLAY --grid-assist
+  ->
+DAGGER
+  ->
+TRAIN
+  ->
+PLAY --grid-assist
