@@ -10,7 +10,7 @@ The project intentionally mixes biologically derived connectivity with engineere
 
 **Current release: V3.7.1**
 
-![FlyIsaac V3.7 — Isaac gameplay beside the MaleCNS Anatomical Activity 2.0 monitor](https://github.com/Wena123/Flysaac.V2/blob/main/docs/images/flyisaac-v37-hero.webp?raw=1)
+![FlyIsaac V3.7 — Isaac gameplay beside the MaleCNS Anatomical Activity 2.0 monitor](https://github.com/Wena123/Flysaac.V2/blob/main/docs/images/flyisaac-v37-hero.png?raw=1)
 
 *Live V3.7 runtime: Isaac gameplay beside the MaleCNS Anatomical Activity 2.0 monitor, retina views, tactical grid and decoder outputs.*
 
