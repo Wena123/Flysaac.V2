@@ -10,6 +10,12 @@ The project intentionally mixes biologically derived connectivity with engineere
 
 **Current release: V3.7.1**
 
+<p align="center">
+  <img src="docs/images/flyisaac-v37-hero.webp" alt="FlyIsaac V3.7 running The Binding of Isaac next to the MaleCNS Anatomical Activity 2.0 monitor" width="100%">
+</p>
+
+<p align="center"><em>Live V3.7 runtime: Isaac gameplay beside the MaleCNS Anatomical Activity 2.0 monitor, retina views, tactical grid and decoder outputs.</em></p>
+
 ## Highlights
 
 - MaleCNS runtime through FlyBrain (~166k neurons in the current setup)
