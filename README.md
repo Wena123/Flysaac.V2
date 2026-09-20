@@ -1,93 +1,101 @@
-# FlyIsaac / FlyBrain
+# FlyIsaac
 
-Experimental project connecting a **Drosophila MaleCNS connectome simulation**
-to **The Binding of Isaac: Repentance+**.
+**A Drosophila MaleCNS connectome controlling The Binding of Isaac: Repentance+.**
 
-The goal is not to claim that a fruit-fly brain naturally understands Isaac.
-The project deliberately combines biological connectivity with engineered
-computer-vision, game-state bridges and small trainable action decoders so that
-we can inspect what happens when a large connectome is placed inside a real-time
-control loop.
+[![Python syntax](https://github.com/Wena123/Flysaac.V2/actions/workflows/python-syntax.yml/badge.svg)](https://github.com/Wena123/Flysaac.V2/actions/workflows/python-syntax.yml)
 
-**Current release:** V3.7.1
+FlyIsaac is an experimental real-time control project that connects a large **Drosophila MaleCNS** connectome simulation to **The Binding of Isaac: Repentance+**.
 
-## What V3.7.1 contains
+The project intentionally mixes biologically derived connectivity with engineered perception, game-state bridges and small trainable decoders. The assisted mode is therefore **not** a claim that a fly brain naturally understands Isaac.
 
-- full MaleCNS runtime through FlyBrain
-- pixel-based retina / motion / target processing
-- rich visual feature stream
-- descending-neuron activity traces
-- 7×14 **tactical neural grid**
-- legacy 12×20 decoder grid retained for model compatibility
-- hostile projectile tracking and short-horizon prediction:
-  - NOW
-  - +150 ms
-  - +300 ms
-  - +500 ms
+**Current release: V3.7.1**
+
+## Highlights
+
+- MaleCNS runtime through FlyBrain (~166k neurons in the current setup)
+- pixel retina / motion / target processing
+- descending-neuron (DN) traces
+- trainable movement + shooting decoder
+- 7×14 tactical neural grid
+- legacy 12×20 decoder grid kept for compatibility
+- hostile projectile tracking with:
+  - current position
+  - velocity
+  - hitbox
+  - +150 ms / +300 ms / +500 ms prediction
 - engineered projectile-danger drive into LC10 / LPLC2 / LC4 pathways
-- PAM/PPL-like dopamine signalling when matching MaleCNS annotations exist
+- PAM/PPL-like dopamine signalling when matching annotations are available
 - bounded online dopamine-gated action-bias memory
-- door memory to stop repeated A↔B doorway dopamine farming
-- ROOM_CLEAR reward deduplication per room/run
-- 5-minute same-room watchdog that holds **R for 3 seconds** and resets the
-  transient runtime state
-- enlarged anatomical MaleCNS activity monitor
-- faster low-latency capture loop with stale-frame dropping
+- door-memory anti-farming for repeated A↔B transitions
+- ROOM_CLEAR de-duplication per room/run
+- 5-minute same-room watchdog → hold **R** for 3 s → transient reset
+- anatomical MaleCNS activity monitor
 - DAgger human-correction workflow
+- low-latency capture loop with stale-frame dropping
 
 ## Architecture
 
 ```text
-                         ┌──────────────────────┐
-Isaac screen ───────────►│ pixel retina/vision  │
-                         └──────────┬───────────┘
-                                    │
-                                    ▼
-                            visual sensory drive
-                                    │
-                                    ▼
-                         ┌──────────────────────┐
-                         │      MaleCNS         │
-                         │  ~166k neurons       │
-                         └──────────┬───────────┘
-                                    │
-                         descending neurons (DN)
-                                    │
-                                    ▼
-                           trainable decoder
-                                    │
-                                    ▼
-                         movement + shooting
+Isaac pixels
+    │
+    ▼
+retina / visual features
+    │
+    ▼
+engineered visual sensory drive
+    │
+    ▼
+┌─────────────────────────┐
+│         MaleCNS         │
+│  biological connectivity│
+└────────────┬────────────┘
+             │
+             ▼
+     descending neurons
+             │
+             ▼
+      trainable decoder
+             │
+             ▼
+   movement + shooting
 
-Isaac Lua state ──► room/enemy/projectile bridges
-                         │
-                         ├──► 12×20 compatibility grid ─► decoder
-                         │
-                         └──► 7×14 tactical grid ───────► engineered
-                                                        sensory drive
+
+Isaac Lua state
+    │
+    ├──► 12×20 compatibility grid ───► decoder
+    │
+    └──► 7×14 tactical grid ─────────► engineered MaleCNS sensory drive
+             │
+             └── projectile prediction / danger
 ```
 
-The tactical grid is **privileged game state**, not information inferred from
-pixels. Results from `--grid-assist` therefore should not be described as a
-pure visual/biological benchmark.
+### Pure vision vs assisted mode
+
+`--pure-vision` uses the pixel-derived visual path without the privileged tactical grid.
+
+`--grid-assist` additionally uses room/combat state from Isaac's Lua/log bridge. That information is **privileged game state**, not something inferred from the screen.
+
+This distinction matters when interpreting results.
 
 ## Requirements
 
-Known development setup:
+Known development environment:
 
 - Windows 11
 - Python 3.11 64-bit
-- NVIDIA GPU recommended
-- CUDA 12-compatible driver
-- `flybrain[gpu]==0.1.0`
 - The Binding of Isaac: Repentance+
-- Steam version with Lua mods enabled
+- NVIDIA GPU recommended
+- CUDA 12-compatible driver recommended
+- `flybrain[gpu]==0.1.0`
 
-Install Python dependencies:
+Install:
 
 ```powershell
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+
 python -m pip install --upgrade pip setuptools wheel
-python -m pip install "flybrain[gpu]==0.1.0" numpy opencv-python pygame mss pywin32 pydirectinput
+python -m pip install -r requirements.txt
 ```
 
 Optional CUDA check:
@@ -96,129 +104,47 @@ Optional CUDA check:
 python -c "import cupy as cp; print('CUDA devices:', cp.cuda.runtime.getDeviceCount()); print('CuPy:', cp.__version__)"
 ```
 
-## Project location
+## Quick start
 
-The current Windows development layout is:
-
-```text
-C:\Users\Admin\Documents\GitHub\FlyBrain\
-├── .venv\
-└── fly.ai\
-    ├── README.md
-    ├── isaac_mods\
-    └── fly_agent\
-```
-
-Most commands must be run from:
+Clone the repository and enter the runtime folder:
 
 ```powershell
-cd C:\Users\Admin\Documents\GitHub\FlyBrain\fly.ai\fly_agent
+git clone https://github.com/Wena123/Flysaac.V2.git
+cd Flysaac.V2\fly_agent
 ```
 
-If Python says it cannot open `collect_isaac_v3.py`, `play_isaac_v3.py`, etc.,
-check the current directory first.
-
-## Isaac bridge mods
-
-The repository contains `isaac_mods/`.
-
-Source-confirmed bridge folders bundled with this release are:
-
-```text
-isaac_mods/
-├── FlyAI_Combat_Bridge_V4/
-└── FlyAI_V37_Projectile_Bridge/
-```
-
-The project also consumes the legacy streams:
-
-```text
-FLYAI|
-FLYROOM|
-FLYWORLD|
-```
-
-The exact legacy core/room/world Lua source folders were not present in the
-V3.7/V3.7.1 release artifacts available when this package was assembled, so
-they were **not fabricated and presented as originals**. Keep the already
-working legacy bridge mods installed.
-
-Check the live log streams with:
-
-```powershell
-python check_isaac_bridges_v371.py
-```
-
-Expected project prefixes are:
-
-```text
-FLYAI|
-FLYROOM|
-FLYWORLD|
-FLYCOMBAT|
-FLYCOMBATV37|
-```
-
-See `isaac_mods/README_MODS.md` for details.
-
-## Verify the current release
-
-From `fly_agent`:
+Run current verification:
 
 ```powershell
 python verify_isaac_v37.py
-python test_tactical_grid_v37.py
-python test_dopamine_preserved_v37.py
-python test_anatomy_v37.py
-python test_sensory_v37.py
-python test_fast_loop_v37.py
-
 python verify_door_memory_v371.py
 python test_door_memory_v371.py
+```
 
+Check Isaac bridge streams while the game is running:
+
+```powershell
 python check_isaac_bridges_v371.py
 ```
 
-These tests verify Python-side behavior and synthetic integration. They do not
-replace a live Isaac + Lua bridge test.
-
-## Typical workflow
-
-Record human demonstrations:
+Typical workflow:
 
 ```powershell
 python collect_isaac_v3.py --minutes 15
-```
-
-Train:
-
-```powershell
 python train_decoder_v3.py
-```
-
-Run the assisted agent:
-
-```powershell
 python play_isaac_v3.py --grid-assist
-```
-
-Collect DAgger corrections:
-
-```powershell
 python dagger_isaac_v3.py
 ```
 
-Then train again.
+For the longer Windows command reference see:
+
+```text
+FlyIsaac_KOMENDY_V3.7.1.txt
+```
 
 ## Runtime modes
 
-Default model selection:
-
-```powershell
-python play_isaac_v3.py
-```
-
-Grid-assisted:
+Assisted mode:
 
 ```powershell
 python play_isaac_v3.py --grid-assist
@@ -230,74 +156,91 @@ Pure visual mode:
 python play_isaac_v3.py --pure-vision
 ```
 
-Pure visual mode without dopamine:
+Pure vision without dopamine:
 
 ```powershell
 python play_isaac_v3.py --pure-vision --no-dopamine
 ```
 
-Keep dopamine neural drive but disable online action-bias adaptation:
-
-```powershell
-python play_isaac_v3.py --grid-assist --no-dopamine-plasticity
-```
-
-Keep the decoder's grid input but disable grid injection into MaleCNS:
+Grid decoder input without grid injection into MaleCNS:
 
 ```powershell
 python play_isaac_v3.py --grid-assist --no-brain-grid
 ```
 
-Disable the anatomical monitor:
+Dopamine neural signal without online policy-bias updates:
+
+```powershell
+python play_isaac_v3.py --grid-assist --no-dopamine-plasticity
+```
+
+Disable the neuron monitor:
 
 ```powershell
 python play_isaac_v3.py --grid-assist --no-neuron-monitor
 ```
 
-## Dopamine settings
+## Isaac bridge mods
 
-The user-editable dopamine configuration is intentionally centralized in:
+Bundled under `isaac_mods/`:
+
+```text
+isaac_mods/
+├── FlyAI_Combat_Bridge_V4/
+└── FlyAI_V37_Projectile_Bridge/
+```
+
+The runtime also expects the legacy project streams:
+
+```text
+FLYAI|
+FLYROOM|
+FLYWORLD|
+FLYCOMBAT|
+FLYCOMBATV37|
+```
+
+The exact legacy core/room/world Lua source folders were not present in the V3.7/V3.7.1 release artifacts used to assemble this repository, so replacements were **not invented and presented as originals**. Keep the already-working legacy bridge mods installed.
+
+Live check:
+
+```powershell
+python check_isaac_bridges_v371.py --seconds 30
+```
+
+## Dopamine
+
+User-editable dopamine configuration:
 
 ```text
 fly_agent/isaac_v3/dopamine_settings.py
 ```
 
-V3.7.1 preserves the current custom values. Do not replace this file with an
-older default config when applying patches.
+The current V3.7.1 configuration intentionally keeps the custom event values used during development.
 
-Persistent dopamine policy memory:
+Persistent policy memory:
 
 ```text
 fly_agent/checkpoints/isaac_dopamine_policy_v36.npz
 ```
 
-This memory is separate from MaleCNS connectome weights. Current V3.7.1 does
-**not** implement general persistent synaptic plasticity across the connectome.
+Important: current persistent online learning is a **bounded policy residual / action-bias mechanism**. It is not general persistent synaptic plasticity across the whole MaleCNS connectome.
 
-## Door-memory anti-farming
+## Door memory / anti-farming
 
-V3.7.1 stores room connections as undirected edges:
-
-```text
-room A <-> room B
-```
-
-The first crossing can allow `NEW_ROOM` dopamine. Repeated movement through the
-same connection is blocked from repeatedly generating that dopamine signal.
-
-`ROOM_CLEAR` is also deduplicated to once per room in a run.
-
-Files:
+V3.7.1 stores traversed room connections as undirected edges:
 
 ```text
-fly_agent/isaac_v3/door_memory.py
-fly_agent/isaac_v3/door_memory_settings.py
+A <-> B
 ```
 
-## Tactical projectile vision
+The first crossing can receive `NEW_ROOM` dopamine credit. Repeated A→B→A→B movement through the same connection does not repeatedly farm that reward.
 
-The V3.7 projectile bridge reports hostile projectile position, velocity and
-hitbox information. Python generates tactical maps for:
+`ROOM_CLEAR` is also de-duplicated once per room per run.
+
+## Projectile vision
+
+The V3.7 projectile bridge reports hostile projectile position, velocity and hitbox data. Python builds tactical predictions for:
 
 ```text
 NOW
@@ -306,33 +249,31 @@ NOW
 +500 ms
 ```
 
-This supports a danger corridor / approximate time-to-impact signal instead of
-only exposing the nearest projectile distance.
+The goal is to provide a spatial danger representation rather than only the nearest-projectile distance.
 
 ## Performance
 
-The current fast loop targets a faster capture stream than the MaleCNS update
-rate and drops stale frames instead of allowing latency to accumulate.
-
-Settings:
+Performance settings live in:
 
 ```text
 fly_agent/isaac_v3/performance_settings.py
 ```
 
-The important principle is **freshest frame wins**. A higher nominal FPS is not
-useful if it creates a queue of old frames.
+Current design principle:
+
+> **freshest frame wins**
+
+If capture runs faster than the MaleCNS loop, stale frames are discarded instead of building a latency queue.
 
 ## Same-room watchdog
 
-If the runtime remains in the same room for approximately five minutes, the
-watchdog:
+If the agent stays in the same room for approximately five minutes:
 
-1. releases held controls,
-2. holds `R` for three seconds,
-3. restarts the run,
-4. resets transient MaleCNS/retina/temporal state,
-5. preserves learned decoder files and persistent dopamine policy memory.
+1. controls are released,
+2. `R` is held for three seconds,
+3. the run restarts,
+4. transient MaleCNS / retina / temporal state is reset,
+5. learned decoder files and persistent dopamine policy memory remain intact.
 
 Settings:
 
@@ -340,90 +281,62 @@ Settings:
 fly_agent/isaac_v3/stuck_settings.py
 ```
 
-Disable it with:
+Disable:
 
 ```powershell
 python play_isaac_v3.py --grid-assist --no-stuck-watchdog
 ```
 
-## Anatomical activity monitor
-
-The monitor uses anatomical point positions from the MaleCNS data. It shows
-live whole-brain spike activity, descending activity, retina/tactical panels,
-decision probabilities and multiple anatomical projections.
-
-It is a point-cloud anatomical activity display; it is **not** a full render of
-every neuron's axon and dendrite skeleton.
-
-## Repository structure
+## Repository layout
 
 ```text
-fly.ai/
+Flysaac.V2/
 ├── README.md
-├── FlyIsaac_KOMENDY_V3.7.1.txt
+├── CHANGELOG.md
 ├── requirements.txt
+├── FlyIsaac_KOMENDY_V3.7.1.txt
 ├── isaac_mods/
-│   ├── README_MODS.md
-│   ├── FlyAI_Combat_Bridge_V4/
-│   └── FlyAI_V37_Projectile_Bridge/
 └── fly_agent/
     ├── play_isaac_v3.py
     ├── collect_isaac_v3.py
     ├── dagger_isaac_v3.py
     ├── train_decoder_v3.py
-    ├── check_isaac_bridges_v371.py
-    ├── cleanup_legacy_v371.py
-    ├── isaac/              # legacy project modules; do not blindly overwrite
-    ├── isaac_v3/           # current FlyIsaac runtime
+    ├── isaac/        # legacy modules still used by current runtime
+    ├── isaac_v3/     # current V3.x runtime
     ├── datasets/
     └── checkpoints/
 ```
 
 ## Cleanup
 
-The current cleanup script removes a defined list of obsolete diagnostic/test
-files and generated Python caches:
+The repository includes:
 
 ```powershell
 python cleanup_legacy_v371.py
 ```
 
-It deliberately does not delete the core source directories, datasets,
-checkpoints, Isaac mods or dopamine settings.
+It removes only a defined set of obsolete diagnostic/test files plus Python caches. It deliberately leaves core source, datasets, checkpoints, mods and dopamine settings untouched.
 
-## Data and model compatibility
+## Research status and limitations
 
-V3.7 keeps the legacy 12×20 decoder grid so existing V3.5/V3.6 grid-trained
-models and data do not need to be discarded solely because the new neural
-tactical grid is 7×14.
+This is an experimental system, not a validated model of fly cognition.
 
-Older V3.4 visual data/checkpoints can still be useful for the visual transfer
-path.
+In particular:
 
-## Research status / limitations
+- MaleCNS connectivity is biologically derived.
+- visual preprocessing is engineered.
+- the tactical grid is privileged game-state input.
+- grid-to-MaleCNS routing is engineered.
+- the PAM/PPL valence mapping is an engineered computational interpretation.
+- the current persistent online learner changes bounded action biases, not the full connectome.
+- synthetic tests do not prove that every live Isaac bridge or every expected cell annotation is present on a given machine.
 
-This is an experimental control system, not a validated model of fly cognition.
+Keeping those distinctions explicit makes pixel-only and assisted experiments easier to compare honestly.
 
-Important distinctions:
+## Version history
 
-- the MaleCNS connectivity is biologically derived;
-- pixel preprocessing is engineered;
-- the tactical grid is privileged game-state information;
-- grid-to-MaleCNS routing is engineered;
-- PAM/PPL mapping is a computational valence mechanism built on available
-  annotations;
-- the current persistent online learning mechanism changes bounded action
-  biases, not all MaleCNS synaptic weights;
-- synthetic unit tests do not prove that every cell annotation or Lua bridge is
-  available in a particular live installation.
+See [CHANGELOG.md](CHANGELOG.md).
 
-These distinctions are kept explicit so pixel-only and assisted experiments can
-be compared honestly.
+## Contributing
 
-## Command reference
-
-For the full Windows command cheat-sheet, see:
-
-```text
-FlyIsaac_KOMENDY_V3.7.1.txt
-```
+See [CONTRIBUTING.md](CONTRIBUTING.md).

@@ -1,84 +1,54 @@
 FLYISAAC / FLYBRAIN — ŚCIĄGA Z KOMEND
 ============================================================
 AKTUALNA WERSJA: V3.7.1
-V3.7 = tactical grid + projectile prediction + faster runtime
-V3.7.1 = door memory / anti-dopamine-farming
 
-GŁÓWNY FOLDER:
-C:\Users\Admin\Documents\GitHub\FlyBrain\fly.ai\fly_agent
+UWAGA:
+Większość komend uruchamiaj z folderu:
+<REPO>\fly_agent
 
-
-============================================================
-0. NAJWAŻNIEJSZE — ZAWSZE NAJPIERW WEJDŹ DO fly_agent
-============================================================
-
-Jeżeli terminal pokazuje:
-(.venv) PS C:\Users\Admin\Documents\GitHub\FlyBrain>
-
-to jesteś ZA WYSOKO.
-
-Wpisz:
-cd C:\Users\Admin\Documents\GitHub\FlyBrain\fly.ai\fly_agent
-
-Prawidłowy prompt:
-(.venv) PS C:\Users\Admin\Documents\GitHub\FlyBrain\fly.ai\fly_agent>
+Przykład po clone:
+cd Flysaac.V2\fly_agent
 
 
 ============================================================
 1. VENV
 ============================================================
 
-Jeśli venv nie jest aktywny, z folderu:
-C:\Users\Admin\Documents\GitHub\FlyBrain
-
-uruchom:
+Z root repo:
+python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 
-Następnie:
-cd .\fly.ai\fly_agent
-
-
-============================================================
-2. INSTALACJA PAKIETÓW PYTHON
-============================================================
-
+Instalacja:
 python -m pip install --upgrade pip setuptools wheel
+python -m pip install -r requirements.txt
 
-NVIDIA / CUDA:
-python -m pip install "flybrain[gpu]==0.1.0" numpy opencv-python pygame mss pywin32 pydirectinput
-
-Sprawdzenie:
-python -c "import numpy, cv2, pygame, mss, win32gui, pydirectinput; print('Python deps OK')"
-python -c "from flybrain import FlyBrain; print('FlyBrain import OK')"
-
-CUDA:
-python -c "import cupy as cp; print('CUDA devices:', cp.cuda.runtime.getDeviceCount()); print('CuPy:', cp.__version__)"
+Jeśli jesteś już w fly_agent:
+cd ..
+python -m pip install -r requirements.txt
+cd fly_agent
 
 
 ============================================================
-3. MODY ISAACA / BRIDGE
+2. SPRAWDZENIE BRIDGE'ÓW ISAACA
 ============================================================
 
-W paczce:
-isaac_mods\FlyAI_Combat_Bridge_V4
-isaac_mods\FlyAI_V37_Projectile_Bridge
+Uruchom Isaaca, wejdź/przejdź do pokoju i odpal:
 
-V3.7.1 nadal używa również istniejących legacy streamów:
-FLYAI|
-FLYROOM|
-FLYWORLD|
-
-Nie wyłączaj działających starych modów core/room/world.
-
-Sprawdź co faktycznie dochodzi do log.txt:
 python check_isaac_bridges_v371.py
 
 Dłuższy test:
 python check_isaac_bridges_v371.py --seconds 30
 
+Sprawdzane prefixy:
+FLYAI|
+FLYROOM|
+FLYWORLD|
+FLYCOMBAT|
+FLYCOMBATV37|
+
 
 ============================================================
-4. TESTY AKTUALNEJ WERSJI
+3. TESTY V3.7 / V3.7.1
 ============================================================
 
 python verify_isaac_v37.py
@@ -88,49 +58,38 @@ python test_anatomy_v37.py
 python test_sensory_v37.py
 python test_fast_loop_v37.py
 
-Door memory / anti farming:
+Door memory:
 python verify_door_memory_v371.py
 python test_door_memory_v371.py
 
-Bridge:
-python check_isaac_bridges_v371.py
-
 
 ============================================================
-5. NORMALNY WORKFLOW
+4. NORMALNY WORKFLOW
 ============================================================
 
-A) Nagraj demonstrację:
+COLLECT:
 python collect_isaac_v3.py --minutes 15
 
-Najlepiej kilka sesji:
-python collect_isaac_v3.py --minutes 15
-python collect_isaac_v3.py --minutes 15
-
-B) Trening:
+TRAIN:
 python train_decoder_v3.py
 
-C) Gra:
+PLAY:
 python play_isaac_v3.py --grid-assist
 
-D) Korekty DAgger:
+DAGGER:
 python dagger_isaac_v3.py
 
-E) Zatrzymaj DAgger:
+Po DAgger:
 CTRL+C
-
-F) Trening ponownie:
 python train_decoder_v3.py
-
-G) Test ponownie:
 python play_isaac_v3.py --grid-assist
 
 
 ============================================================
-6. PLAY — TRYBY
+5. PLAY — TRYBY
 ============================================================
 
-Domyślnie:
+Domyślny wybór modelu:
 python play_isaac_v3.py
 
 GRID assist:
@@ -145,121 +104,29 @@ python play_isaac_v3.py --pure-vision --no-dopamine
 GRID bez dopaminy:
 python play_isaac_v3.py --grid-assist --no-dopamine
 
-GRID + sygnał dopaminy, ale bez online policy plasticity:
+Dopamina neural ON, policy plasticity OFF:
 python play_isaac_v3.py --grid-assist --no-dopamine-plasticity
 
-Decoder może nadal używać GRID, ale nie wstrzykuj GRID do MaleCNS:
+Decoder używa GRID, ale GRID nie jest wstrzykiwany do MaleCNS:
 python play_isaac_v3.py --grid-assist --no-brain-grid
 
-Wyłącz monitor neuronów:
+Bez monitora:
 python play_isaac_v3.py --grid-assist --no-neuron-monitor
 
-Rzut monitora:
-python play_isaac_v3.py --grid-assist --neuron-projection xz
+Rzuty monitora:
 python play_isaac_v3.py --grid-assist --neuron-projection xy
+python play_isaac_v3.py --grid-assist --neuron-projection xz
 python play_isaac_v3.py --grid-assist --neuron-projection yz
 
-Wyłącz watchdog 5 minut:
+Bez 5-min watchdog:
 python play_isaac_v3.py --grid-assist --no-stuck-watchdog
 
-Wyłącz auto restart po śmierci:
+Bez auto-restartu po śmierci:
 python play_isaac_v3.py --grid-assist --no-auto-restart
 
 
 ============================================================
-7. V3.7 — TACTICAL GRID / PROJECTILES
-============================================================
-
-Neural tactical grid:
-7 x 14
-
-Stary decoder grid:
-12 x 20
-zostaje dla kompatybilności ze starszymi modelami/datasetami.
-
-Projectile prediction:
-NOW
-+150 ms
-+300 ms
-+500 ms
-
-Danger signal trafia do sensorycznej ścieżki MaleCNS
-(LC10 / LPLC2 / LC4 w engineered mapping).
-
-Ustawienia wydajności:
-isaac_v3\performance_settings.py
-
-Ustawienia tactical grid:
-isaac_v3\tactical_grid.py
-
-
-============================================================
-8. DOPAMINA — TWOJE USTAWIENIA
-============================================================
-
-EDYTUJ TYLKO:
-isaac_v3\dopamine_settings.py
-
-Ta paczka zachowuje Twoje obecne wartości.
-
-Pamięć online:
-checkpoints\isaac_dopamine_policy_v36.npz
-
-Backup pamięci:
-Copy-Item checkpoints\isaac_dopamine_policy_v36.npz checkpoints\isaac_dopamine_policy_v36_backup.npz
-
-Reset pamięci dopaminowej:
-Rename-Item checkpoints\isaac_dopamine_policy_v36.npz isaac_dopamine_policy_v36_old.npz
-
-Przy kolejnym uruchomieniu powstanie nowa pamięć.
-
-
-============================================================
-9. DOOR MEMORY — ANTI FARMING
-============================================================
-
-V3.7.1 pamięta połączenia pokojów:
-A <-> B
-
-Pierwsze przejście:
-dopamina za NEW_ROOM może przejść.
-
-Powtarzanie:
-A -> B -> A -> B
-nie daje kolejnej dopaminy za te same drzwi.
-
-ROOM_CLEAR również jest deduplikowany do maks. jednego rewardu
-na pokój w jednym runie.
-
-Pliki:
-isaac_v3\door_memory.py
-isaac_v3\door_memory_settings.py
-
-Test:
-python test_door_memory_v371.py
-
-
-============================================================
-10. WATCHDOG 5 MINUT
-============================================================
-
-Jeśli agent pozostaje w jednym pokoju >= 5 min:
-- puszcza klawisze
-- trzyma R przez 3 sekundy
-- restartuje run
-- resetuje transient MaleCNS / retina / trace / context
-- NIE kasuje learned decoder
-- NIE kasuje persistent dopamine policy memory
-
-Ustawienia:
-isaac_v3\stuck_settings.py
-
-Wyłączenie:
-python play_isaac_v3.py --grid-assist --no-stuck-watchdog
-
-
-============================================================
-11. COLLECT
+6. COLLECT
 ============================================================
 
 15 minut:
@@ -269,32 +136,34 @@ python collect_isaac_v3.py --minutes 15
 python collect_isaac_v3.py --minutes 30
 
 CTRL+C:
-kończy wcześniej i zapisuje dataset.
+kończy wcześniej i zapisuje dane.
 
-Sprawdź nowe dane:
+Nowe datasety:
 dir datasets\isaac_v37_*.npz
 
-Wszystkie dane:
+Wszystkie datasety:
 dir datasets\*.npz
 
 
 ============================================================
-12. TRAIN
+7. TRAIN
 ============================================================
 
 python train_decoder_v3.py
 
-Sprawdź modele:
+Aktualne modele:
 dir checkpoints\isaac_decoder_v37*.npz
+
+Wszystkie checkpointy:
 dir checkpoints\*.npz
 
-V3.4 visual nadal może być używany do transferu:
+Stare V3.4 visual/transfer:
 dir checkpoints\isaac_decoder_v34*.npz
 dir datasets\isaac_v34_*.npz
 
 
 ============================================================
-13. DAGGER
+8. DAGGER
 ============================================================
 
 python dagger_isaac_v3.py
@@ -302,41 +171,100 @@ python dagger_isaac_v3.py
 F8:
 AGENT <-> HUMAN CORRECTION
 
-W teacher mode:
+Teacher:
 WASD + strzałki
 
 CTRL+C:
-zapisuje zebrane poprawki.
+zapis danych DAgger.
 
-Po DAgger:
+Potem:
 python train_decoder_v3.py
 
 
 ============================================================
-14. MONITOR MALECNS
+9. DOPAMINA
 ============================================================
 
-Domyślny:
-python play_isaac_v3.py --grid-assist
+EDYTUJ:
+isaac_v3\dopamine_settings.py
 
-XZ:
-python play_isaac_v3.py --grid-assist --neuron-projection xz
+Nie zmieniaj dopamine.py tylko po to, żeby ustawić event rewards.
 
-XY:
-python play_isaac_v3.py --grid-assist --neuron-projection xy
+Aktualna pamięć online:
+checkpoints\isaac_dopamine_policy_v36.npz
 
-YZ:
-python play_isaac_v3.py --grid-assist --neuron-projection yz
+Backup:
+Copy-Item checkpoints\isaac_dopamine_policy_v36.npz checkpoints\isaac_dopamine_policy_v36_backup.npz
 
-Bez monitora:
-python play_isaac_v3.py --grid-assist --no-neuron-monitor
+Reset persistent policy memory:
+Rename-Item checkpoints\isaac_dopamine_policy_v36.npz isaac_dopamine_policy_v36_old.npz
 
 
 ============================================================
-15. CLEANUP STARYCH PLIKÓW
+10. DOOR MEMORY / ANTI-FARMING
 ============================================================
 
-UWAGA: cleanup od razu usuwa znane stare verify/test/diagnostic files.
+Pliki:
+isaac_v3\door_memory.py
+isaac_v3\door_memory_settings.py
+
+Zasada:
+A <-> B płaci NEW_ROOM dopamine tylko pierwszy raz w runie.
+
+Powtórka:
+A -> B -> A -> B
+nie farmi ponownie tego rewardu.
+
+ROOM_CLEAR:
+max raz na pokój / run.
+
+Test:
+python test_door_memory_v371.py
+
+
+============================================================
+11. WATCHDOG 5 MIN
+============================================================
+
+Jeśli mucha pozostaje w tym samym pokoju ~5 minut:
+- puszcza sterowanie
+- trzyma R przez 3 s
+- restartuje run
+- resetuje transient runtime/MaleCNS
+- zachowuje decoder i persistent dopamine policy memory
+
+Ustawienia:
+isaac_v3\stuck_settings.py
+
+
+============================================================
+12. TACTICAL GRID / PROJECTILES
+============================================================
+
+Neural tactical grid:
+7 x 14
+
+Compatibility decoder grid:
+12 x 20
+
+Projectile prediction:
+NOW
++150 ms
++300 ms
++500 ms
+
+Performance:
+isaac_v3\performance_settings.py
+
+Tactical:
+isaac_v3\tactical_grid.py
+
+
+============================================================
+13. CLEANUP STARYCH PLIKÓW
+============================================================
+
+UWAGA: usuwa od razu znane stare verify/test/diagnostic files.
 
 python cleanup_legacy_v371.py
 
@@ -347,84 +275,76 @@ brain\
 learning\
 datasets\
 checkpoints\
-isaac_mods\
 dopamine_settings.py
 
 
 ============================================================
-16. SPRAWDZANIE PLIKÓW
+14. GITHUB / REPO CHECK
 ============================================================
 
-Obecny folder:
-pwd
+Szybki syntax check:
+python -m compileall -q .
 
-Lista:
-dir
+Git status:
+git status
 
-Datasety:
-dir datasets
+Zmiany:
+git diff
 
-Checkpointy:
-dir checkpoints
+Aktualizacja:
+git pull
 
-Aktualne modele:
-dir checkpoints\isaac_decoder_v37*.npz
-
-Dopamine memory:
-dir checkpoints\isaac_dopamine_policy_v36.npz
-
-Mody w repo:
-dir ..\isaac_mods
-lub z fly_agent:
-dir ..\isaac_mods
+Push swojej gałęzi:
+git push
 
 
 ============================================================
-17. NAJCZĘSTSZY BŁĄD: "can't open file"
+15. NAJCZĘSTSZY BŁĄD — "can't open file"
 ============================================================
 
-Jeżeli masz:
-PS C:\Users\Admin\Documents\GitHub\FlyBrain>
-
-i wpisujesz:
+Jeżeli wpisujesz:
 python collect_isaac_v3.py
 
-to Python szuka pliku w złym folderze.
+i dostajesz:
+can't open file ...
 
-Naprawa:
-cd C:\Users\Admin\Documents\GitHub\FlyBrain\fly.ai\fly_agent
+sprawdź:
+pwd
 
-Potem:
-python collect_isaac_v3.py --minutes 15
+Musisz być w:
+<REPO>\fly_agent
+
+Przykład:
+cd Flysaac.V2\fly_agent
 
 
 ============================================================
-18. ARCHITEKTURA — CO JEST PIXELAMI, A CO ASSIST
+16. PIXEL VS GRID ASSIST
 ============================================================
 
-PIXEL:
-Isaac screen
+PURE:
+PIXELS
 -> retina
--> engineered visual sensory injection / visual features
+-> engineered visual path
+-> MaleCNS / decoder
 
-PRIVILEGED ASSIST:
-Lua game state
--> room/enemy/projectile/grid
--> 7x14 tactical sensory map
--> engineered MaleCNS sensory injection
+GRID ASSIST:
+PIXELS
++
+privileged Lua game-state
+-> tactical grid
+-> engineered sensory injection
 
-Dlatego GRID assisted nie jest "czystą biologiczną wizją".
-To świadomie wspomagany eksperyment.
+Dlatego GRID ASSIST nie jest czystym biologicznym benchmarkiem.
 
 
 ============================================================
-19. NAJKRÓTSZA ŚCIĄGA
+17. NAJKRÓTSZA ŚCIĄGA
 ============================================================
 
-cd C:\Users\Admin\Documents\GitHub\FlyBrain\fly.ai\fly_agent
+cd Flysaac.V2\fly_agent
 
 python check_isaac_bridges_v371.py
-
 python verify_isaac_v37.py
 python verify_door_memory_v371.py
 
@@ -433,18 +353,7 @@ python train_decoder_v3.py
 python play_isaac_v3.py --grid-assist
 python dagger_isaac_v3.py
 
-# cleanup:
-python cleanup_legacy_v371.py
-
 
 ============================================================
 KONIEC
 ============================================================
-
-AKTUALNY CYKL:
-COLLECT
-  -> TRAIN
-  -> PLAY --grid-assist
-  -> DAGGER
-  -> TRAIN
-  -> PLAY
