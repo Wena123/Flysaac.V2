@@ -8,7 +8,7 @@ FlyIsaac is an experimental real-time control project that connects a large **Dr
 
 The project intentionally mixes biologically derived connectivity with engineered perception, game-state bridges and small trainable decoders. The assisted mode is therefore **not** a claim that a fly brain naturally understands Isaac.
 
-**Current release: V3.7.1**
+**Current release: V3.7.2**
 
 ![FlyIsaac V3.7 — Isaac gameplay beside the MaleCNS Anatomical Activity 2.0 monitor](https://github.com/Wena123/Flysaac.V2/blob/main/docs/images/flyisaac-v37-hero.png?raw=1)
 
@@ -30,6 +30,7 @@ The project intentionally mixes biologically derived connectivity with engineere
 - engineered projectile-danger drive into LC10 / LPLC2 / LC4 pathways
 - PAM/PPL-like dopamine signalling when matching annotations are available
 - bounded online dopamine-gated action-bias memory
+- combat-hit dopamine delivery fix: `FLYCOMBAT|SHOT_HIT` now reaches DopamineSystem
 - door-memory anti-farming for repeated A↔B transitions
 - ROOM_CLEAR de-duplication per room/run
 - 5-minute same-room watchdog → hold **R** for 3 s → transient reset
@@ -123,6 +124,7 @@ Run current verification:
 python verify_isaac_v37.py
 python verify_door_memory_v371.py
 python test_door_memory_v371.py
+python test_combat_dopamine_v372.py
 ```
 
 Check Isaac bridge streams while the game is running:
@@ -143,7 +145,7 @@ python dagger_isaac_v3.py
 For the longer Windows command reference see:
 
 ```text
-FlyIsaac_KOMENDY_V3.7.1.txt
+FlyIsaac_KOMENDY_V3.7.2.txt
 ```
 
 ## Runtime modes
@@ -214,13 +216,26 @@ python check_isaac_bridges_v371.py --seconds 30
 
 ## Dopamine
 
+### V3.7.2 combat-event fix
+
+The combat Lua bridge emits `SHOT_HIT` / `SHOT_MISS` through the `FLYCOMBAT|` stream. In V3.7.1 those events were parsed by `IsaacCombatState` but discarded by `IsaacGridBridge` before they could reach the dopamine system.
+
+V3.7.2 keeps those combat events in a one-shot queue and forwards them to `DopamineSystem.observe_events()` in PLAY, COLLECT and DAgger.
+
+With the current custom settings a successful hit should log approximately:
+
+```text
+DOPAMINE EVENT | SHOT_HIT | raw=+0.35 -> DA=+1.00 (custom)
+```
+
+
 User-editable dopamine configuration:
 
 ```text
 fly_agent/isaac_v3/dopamine_settings.py
 ```
 
-The current V3.7.1 configuration intentionally keeps the custom event values used during development.
+The current V3.7.2 configuration intentionally keeps the custom event values used during development.
 
 Persistent policy memory:
 
@@ -232,7 +247,7 @@ Important: current persistent online learning is a **bounded policy residual / a
 
 ## Door memory / anti-farming
 
-V3.7.1 stores traversed room connections as undirected edges:
+V3.7.1+ stores traversed room connections as undirected edges:
 
 ```text
 A <-> B
@@ -298,7 +313,7 @@ Flysaac.V2/
 ├── README.md
 ├── CHANGELOG.md
 ├── requirements.txt
-├── FlyIsaac_KOMENDY_V3.7.1.txt
+├── FlyIsaac_KOMENDY_V3.7.2.txt
 ├── isaac_mods/
 └── fly_agent/
     ├── play_isaac_v3.py
