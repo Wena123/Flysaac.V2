@@ -93,6 +93,15 @@ def main():
                 print("Vision wait:", exc); time.sleep(.05); continue
 
             grid_features, grid = grid_bridge.poll()
+
+            # FLYCOMBAT SHOT_HIT / SHOT_MISS are emitted by the combat Lua
+            # bridge, not by the legacy FLYAI reward stream. V3.7 used to
+            # discard these events inside IsaacGridBridge, so dopamine never
+            # saw successful hits. Drain and deliver them exactly once here.
+            combat_events = grid_bridge.drain_events()
+            if dopamine is not None and combat_events:
+                dopamine.observe_events(combat_events)
+
             if dopamine is not None:
                 dopamine.observe_room(grid_features)
             projectile_state = projectile_bridge.poll()
