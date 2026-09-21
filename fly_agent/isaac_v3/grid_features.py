@@ -84,6 +84,13 @@ class IsaacGridBridge:
         self.last_features = {}
         self.last_errors = set()
 
+        # Combat readers can emit reward events (SHOT_HIT / SHOT_MISS)
+        # while the same poll also updates enemy/grid state. Older V3.7 code
+        # discarded poll()'s return value here, so those events never reached
+        # DopamineSystem. Keep a small one-shot queue and let the runtime drain
+        # it immediately after grid_bridge.poll().
+        self.pending_events = []
+
     @property
     def dim(self):
         return self.extractor.dim
@@ -94,7 +101,16 @@ class IsaacGridBridge:
         try:
             poll = getattr(reader, "poll", None)
             if callable(poll):
-                poll()
+                poll_result = poll()
+
+                # IsaacCombatState.poll() returns a list of reward events.
+                # Room/world readers usually return counts/None, so only
+                # dictionary event records are accepted here.
+                if isinstance(poll_result, (list, tuple)):
+                    for event in poll_result:
+                        if isinstance(event, dict) and event.get("name"):
+                            self.pending_events.append(dict(event))
+
             enrich = getattr(reader, "enrich_features", None)
             if not callable(enrich):
                 enrich = getattr(reader, "enrich", None)
@@ -128,7 +144,19 @@ class IsaacGridBridge:
         vector = self.extractor.extract(features)
         return features, vector
 
+    def drain_events(self):
+        """Return combat reward events collected during the last bridge poll.
+
+        Events are one-shot: draining clears the queue so SHOT_HIT / SHOT_MISS
+        cannot be delivered twice to dopamine.
+        """
+        events = self.pending_events
+        self.pending_events = []
+        return events
+
     def reset_run(self):
+        self.pending_events = []
+
         # Different historical readers used different reset method names.
         for reader in (self.room, self.world, self.combat):
             if reader is None:
