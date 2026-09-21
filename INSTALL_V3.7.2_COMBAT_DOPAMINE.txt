@@ -1,0 +1,67 @@
+FlyIsaac V3.7.2 — COMBAT DOPAMINE HOTFIX
+================================================
+
+BUG
+---
+The Combat Bridge V4 correctly emitted:
+
+    FLYCOMBAT|SHOT_HIT|0.35|...
+
+and isaac/combat_state.py correctly parsed SHOT_HIT / SHOT_MISS.
+
+However, IsaacGridBridge called combat.poll() only for state enrichment and
+discarded the returned event list. play/collect/DAgger only sent legacy FLYAI
+events to DopamineSystem.
+
+Result:
+SHOT_HIT existed in dopamine_settings.py but never reached dopamine.
+
+FIX
+---
+- IsaacGridBridge now keeps combat events in a one-shot queue.
+- play_isaac_v3.py drains that queue and sends it to DopamineSystem.
+- collect_isaac_v3.py does the same.
+- dagger_isaac_v3.py does the same.
+- draining is one-shot, so a hit cannot be rewarded twice.
+- reset_run() clears any pending stale combat events.
+
+DOPAMINE SETTINGS
+-----------------
+This hotfix DOES NOT modify:
+
+    isaac_v3/dopamine_settings.py
+
+Your custom values remain unchanged, including:
+
+    "SHOT_HIT": +1.00
+    "SHOT_MISS": -0.30
+
+So with the current settings a successful hit should print approximately:
+
+    DOPAMINE EVENT | SHOT_HIT           | raw=+0.35 -> DA=+1.00 (custom)
+
+INSTALL
+-------
+Extract the ZIP into:
+
+    C:\Users\Admin\Documents\GitHub\FlyBrain\fly.ai
+
+Allow overwrite of the included files.
+
+Then:
+
+    cd C:\Users\Admin\Documents\GitHub\FlyBrain\fly.ai\fly_agent
+    python test_combat_dopamine_v372.py
+    python play_isaac_v3.py --grid-assist
+
+LIVE CHECK
+----------
+Shoot an enemy and watch the console.
+
+Expected:
+
+    DOPAMINE EVENT | SHOT_HIT ... -> DA=+1.00 (custom)
+
+If you do not see that line, verify that the Isaac mod
+FlyAI_Combat_Bridge_V4 is enabled and that FLYCOMBAT|SHOT_HIT lines appear in
+Isaac's log.txt.
