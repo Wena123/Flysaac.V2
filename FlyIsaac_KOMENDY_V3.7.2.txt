@@ -60,7 +60,6 @@ python test_fast_loop_v37.py
 
 Door memory:
 python verify_door_memory_v371.py
-python test_combat_dopamine_v372.py
 python test_door_memory_v371.py
 
 Combat dopamine hotfix:
