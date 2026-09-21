@@ -27,6 +27,7 @@ python test_sensory_v37.py
 python test_fast_loop_v37.py
 python verify_door_memory_v371.py
 python test_door_memory_v371.py
+python test_combat_dopamine_v372.py
 ```
 
 For a quick repository-wide syntax check:
