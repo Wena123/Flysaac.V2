@@ -1,5 +1,15 @@
 # Changelog
 
+## V3.7.2
+
+### Combat dopamine hotfix
+- preserves `SHOT_HIT` / `SHOT_MISS` events returned by `IsaacCombatState.poll()`
+- forwards combat events from `IsaacGridBridge` to `DopamineSystem`
+- fixes successful enemy hits not producing configured dopamine
+- applies the fix consistently in PLAY, COLLECT and DAgger
+- combat-event delivery is one-shot to avoid duplicate reward
+- does not modify `isaac_v3/dopamine_settings.py`
+
 ## V3.7.1
 
 ### Door-memory anti-farming

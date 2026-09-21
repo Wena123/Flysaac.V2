@@ -1,6 +1,6 @@
 FLYISAAC / FLYBRAIN — ŚCIĄGA Z KOMEND
 ============================================================
-AKTUALNA WERSJA: V3.7.1
+AKTUALNA WERSJA: V3.7.2
 
 UWAGA:
 Większość komend uruchamiaj z folderu:
@@ -48,7 +48,7 @@ FLYCOMBATV37|
 
 
 ============================================================
-3. TESTY V3.7 / V3.7.1
+3. TESTY V3.7 / V3.7.1 / V3.7.2
 ============================================================
 
 python verify_isaac_v37.py
@@ -61,6 +61,9 @@ python test_fast_loop_v37.py
 Door memory:
 python verify_door_memory_v371.py
 python test_door_memory_v371.py
+
+Combat dopamine hotfix:
+python test_combat_dopamine_v372.py
 
 
 ============================================================
@@ -184,6 +187,16 @@ python train_decoder_v3.py
 ============================================================
 9. DOPAMINA
 ============================================================
+
+V3.7.2 COMBAT DOPAMINE HOTFIX:
+SHOT_HIT / SHOT_MISS z FLYCOMBAT są teraz przekazywane do DopamineSystem.
+
+Test:
+python test_combat_dopamine_v372.py
+
+Przy trafieniu przeciwnika oczekuj:
+DOPAMINE EVENT | SHOT_HIT | raw=+0.35 -> DA=+1.00 (custom)
+
 
 EDYTUJ:
 isaac_v3\dopamine_settings.py
